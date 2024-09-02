@@ -1,0 +1,94 @@
+models:
+  Proveedor:
+    id: id
+    nombre: string:120
+    correo: string:120 unique
+    telefono: string:120 unique
+    sector_comercial: string:120
+    razon_social: string:120
+    ruc: string:120 unique
+    estado: integer
+    relationships:
+      hasMany: ContactoProveedor
+
+  ContactoProveedor:
+    id: id
+    nombre: string:120
+    proveedor_id: foreign:proveedores
+    estado: integer
+    relationships:
+      belongsTo: Proveedor
+
+  Categoria:
+    id: id
+    nombre: string:50 unique
+    descripcion: string:120
+    estado: integer
+    relationships:
+      hasMany: Subcategoria
+
+  Subcategoria:
+    id: id
+    nombre: string:50 unique
+    descripcion: string:120
+    categoria_id: foreign:categorias
+    estado: integer
+    relationships:
+      belongsTo: Categoria
+      hasMany: Producto
+
+  Producto:
+    id: id
+    codigo: string:50
+    nombre: string:50 unique
+    descripcion: string:120
+    caducidad: boolean
+    subcategoria_id: foreign:subcategorias
+    estado: integer
+    relationships:
+      belongsTo: Subcategoria
+      hasMany: DetalleProducto
+
+  Color:
+    id: id
+    nombre: string:50
+    estado: integer
+    relationships:
+      hasMany: DetalleProducto
+
+  Marca:
+    id: id
+    nombre: string:50
+    descripcion: string:120
+    estado: integer
+    relationships:
+      hasMany: DetalleProducto
+
+  Material:
+    id: id
+    nombre: string:50
+    descripcion: string:120
+    estado: integer
+    relationships:
+      hasMany: DetalleProducto
+
+  DetalleProducto:
+    id: id
+    producto_id: foreign:productos
+    color_id: foreign:colores
+    marca_id: foreign:marcas
+    material_id: foreign:materiales
+    estado: integer
+    relationships:
+      belongsTo: Producto, Color, Marca, Material
+      hasMany: PrecioProducto
+
+  PrecioProducto:
+    id: id
+    detalleproducto_id: foreign:detalle_productos
+    precio: decimal:10,2
+    fecha_inicio: date
+    fecha_fin: date
+    estado: integer
+    relationships:
+      belongsTo: DetalleProducto

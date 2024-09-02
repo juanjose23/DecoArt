@@ -1,0 +1,42 @@
+created:
+    - database/factories/ProveedorFactory.php
+    - database/factories/ContactoProveedorFactory.php
+    - database/factories/CategoriaFactory.php
+    - database/factories/SubcategoriaFactory.php
+    - database/factories/ProductoFactory.php
+    - database/factories/ColorFactory.php
+    - database/factories/MarcaFactory.php
+    - database/factories/MaterialFactory.php
+    - database/factories/DetalleProductoFactory.php
+    - database/factories/PrecioProductoFactory.php
+    - database/migrations/2024_09_01_222634_create_proveedors_table.php
+    - database/migrations/2024_09_01_222635_create_contacto_proveedors_table.php
+    - database/migrations/2024_09_01_222636_create_categorias_table.php
+    - database/migrations/2024_09_01_222637_create_subcategorias_table.php
+    - database/migrations/2024_09_01_222638_create_productos_table.php
+    - database/migrations/2024_09_01_222639_create_colors_table.php
+    - database/migrations/2024_09_01_222640_create_marcas_table.php
+    - database/migrations/2024_09_01_222641_create_materials_table.php
+    - database/migrations/2024_09_01_222642_create_detalle_productos_table.php
+    - database/migrations/2024_09_01_222643_create_precio_productos_table.php
+    - app/Models/Proveedor.php
+    - app/Models/ContactoProveedor.php
+    - app/Models/Categoria.php
+    - app/Models/Subcategoria.php
+    - app/Models/Producto.php
+    - app/Models/Color.php
+    - app/Models/Marca.php
+    - app/Models/Material.php
+    - app/Models/DetalleProducto.php
+    - app/Models/PrecioProducto.php
+models:
+    Proveedor: { id: id, nombre: 'string:120', correo: 'string:120 unique', telefono: 'string:120 unique', sector_comercial: 'string:120', razon_social: 'string:120', ruc: 'string:120 unique', estado: integer, relationships: { hasMany: ContactoProveedor } }
+    ContactoProveedor: { id: id, nombre: 'string:120', proveedor_id: 'foreign:proveedores', estado: integer, relationships: { belongsTo: Proveedor } }
+    Categoria: { id: id, nombre: 'string:50 unique', descripcion: 'string:120', estado: integer, relationships: { hasMany: Subcategoria } }
+    Subcategoria: { id: id, nombre: 'string:50 unique', descripcion: 'string:120', categoria_id: 'foreign:categorias', estado: integer, relationships: { belongsTo: Categoria, hasMany: Producto } }
+    Producto: { id: id, codigo: 'string:50', nombre: 'string:50 unique', descripcion: 'string:120', caducidad: boolean, subcategoria_id: 'foreign:subcategorias', estado: integer, relationships: { belongsTo: Subcategoria, hasMany: DetalleProducto } }
+    Color: { id: id, nombre: 'string:50', estado: integer, relationships: { hasMany: DetalleProducto } }
+    Marca: { id: id, nombre: 'string:50', descripcion: 'string:120', estado: integer, relationships: { hasMany: DetalleProducto } }
+    Material: { id: id, nombre: 'string:50', descripcion: 'string:120', estado: integer, relationships: { hasMany: DetalleProducto } }
+    DetalleProducto: { id: id, producto_id: 'foreign:productos', color_id: 'foreign:colores', marca_id: 'foreign:marcas', material_id: 'foreign:materiales', estado: integer, relationships: { belongsTo: 'Producto, Color, Marca, Material', hasMany: PrecioProducto } }
+    PrecioProducto: { id: id, detalleproducto_id: 'foreign:detalle_productos', precio: 'decimal:10,2', fecha_inicio: date, fecha_fin: date, estado: integer, relationships: { belongsTo: DetalleProducto } }
