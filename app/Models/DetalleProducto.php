@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 class DetalleProducto extends Model
 {
@@ -17,6 +18,7 @@ class DetalleProducto extends Model
      * @var array
      */
     protected $fillable = [
+        'codigo',
         'producto_id',
         'color_id',
         'marca_id',
@@ -29,6 +31,7 @@ class DetalleProducto extends Model
      *
      * @var array
      */
+
     protected $casts = [
         'id' => 'integer',
         'producto_id' => 'integer',
@@ -56,4 +59,6 @@ class DetalleProducto extends Model
     {
         return $this->belongsTo(Producto::class, 'producto_id');
     }
+
+    
 }

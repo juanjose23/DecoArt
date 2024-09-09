@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::create('marcas', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre', 50);
-            $table->string('descripcion', 120);
-            $table->integer('estado');
-            $table->timestamps();
-        });
+            Schema::create('marcas', function (Blueprint $table) {
+                $table->id();
+                $table->string('nombre', 50);
+                $table->string('descripcion', 120);
+                $table->integer('estado');
+                $table->timestamps();
+            });
 
         Schema::enableForeignKeyConstraints();
     }

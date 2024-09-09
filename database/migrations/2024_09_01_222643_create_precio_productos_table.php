@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('fecha_inicio');
             $table->date('fecha_fin');
             $table->integer('estado');
-            $table->foreignId('detalle_producto_id');
+            
             $table->timestamps();
         });
 

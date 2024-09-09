@@ -6,18 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
-class Producto extends Model
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Picqer\Barcode\BarcodeGeneratorPNG;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+class Producto extends Model implements HasMedia
 {
     use HasFactory;
-
+    use InteractsWithMedia;
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'codigo',
+        'slug',
         'nombre',
         'descripcion',
         'caducidad',
@@ -45,4 +48,14 @@ class Producto extends Model
     {
         return $this->hasMany(DetalleProducto::class);
     }
+    public function generarCodigoDeBarras()
+    {
+        $generator = new BarcodeGeneratorPNG();
+        $barcode = $generator->getBarcode($this->codigo, $generator::TYPE_CODE_128);
+
+        // Devuelve el código de barras como una imagen en línea
+        return '<img src="data:image/png;base64,' . base64_encode($barcode) . '" alt="Código de Barras">';
+    }
+
+    
 }

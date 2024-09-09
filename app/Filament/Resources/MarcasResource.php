@@ -20,8 +20,13 @@ class MarcasResource extends Resource
 {
     protected static ?string $model = Marcas::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+   
+    protected static ?string $navigationIcon = 'heroicon-o-star';
+    protected static ?string $navigationLabel = 'Marcas';
 
+    protected static ?string $navigationGroup = 'Catalogos';
+
+    protected static ?int $navigationSort = 0;
     public static function form(Form $form): Form
     {
         return $form

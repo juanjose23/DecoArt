@@ -15,7 +15,7 @@ return new class extends Migration
 
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo', 50);
+            $table->string('slug', 50);
             $table->string('nombre', 50)->unique();
             $table->string('descripcion', 120);
             $table->boolean('caducidad');
