@@ -32,22 +32,31 @@ class CategoriasResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('nombre')
-                    ->required()
-                    ->maxLength(50)
-                    ->unique(ignoreRecord: true),
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make('')
+                            ->schema([
+                                TextInput::make('nombre')
+                                    ->required()
+                                    ->maxLength(50)
+                                    ->unique(ignoreRecord: true),
 
-                TextInput::make('descripcion')
-                    ->required()
-                    ->maxLength(120),
+                               
+                                Select::make('estado')
+                                    ->options([
+                                        1 => 'Activo',
+                                        0 => 'Inactivo',
+                                    ])
+                                    ->required(),
+                                    Forms\Components\MarkdownEditor::make('descripcion')
+                                    ->required()
+                                    ->maxLength(120)
+                                    ->columnSpan('full'),
 
-                Select::make('estado')
-                    ->options([
-                        1 => 'Activo',
-                        0 => 'Inactivo',
-                    ])
-                    ->required(),
+                            ])->columns(2),
+                    ])->columnSpan(['lg' => 2]),
             ]);
+
     }
 
     public static function table(Table $table): Table
@@ -63,13 +72,13 @@ class CategoriasResource extends Resource
                     ->label('Descripción')
                     ->limit(50),
 
-                    TextColumn::make('estado')
+                TextColumn::make('estado')
                     ->label('Estado')
                     ->formatStateUsing(function ($state) {
                         return $state === 1 ? 'Activo' : 'Inactivo';
                     })
                     ->badge()
-                    ->color(fn ($state): string => $state === 1 ? 'success' : 'danger')
+                    ->color(fn($state): string => $state === 1 ? 'success' : 'danger')
                     ->sortable(),
             ])
             ->filters([
@@ -85,7 +94,7 @@ class CategoriasResource extends Resource
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
-              BulkAction::make('delete')
+                BulkAction::make('delete')
                     ->label('Eliminar')
                     ->action(function (Tables\Actions\BulkAction $action, $records) {
                         foreach ($records as $record) {
@@ -97,7 +106,7 @@ class CategoriasResource extends Resource
                     })
                     ->color('danger'),
             ]);
-           
+
     }
 
     public static function getRelations(): array

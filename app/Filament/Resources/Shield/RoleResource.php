@@ -21,7 +21,8 @@ use Illuminate\Support\Str;
 class RoleResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $recordTitleAttribute = 'name';
-    protected static ?string $navigationGroup  = "Filament Shield";
+    protected static ?string $navigationGroup  = "Seguridad";
+    protected static ?int $navigationSort = 0;
 
     public static function getPermissionPrefixes(): array
     {
@@ -156,12 +157,7 @@ class RoleResource extends Resource implements HasShieldPermissions
         return Utils::isResourceNavigationRegistered();
     }
 
-    public static function getNavigationGroup(): ?string
-    {
-        return Utils::isResourceNavigationGroupEnabled()
-            ? __('filament-shield::filament-shield.nav.group')
-            : '';
-    }
+
 
     public static function getNavigationLabel(): string
     {

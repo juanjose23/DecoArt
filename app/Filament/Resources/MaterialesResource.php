@@ -33,23 +33,32 @@ class MaterialesResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-        ->schema([
-            TextInput::make('nombre')
-                ->required()
-                ->maxLength(50)
-                ->unique(ignoreRecord: true),
+            ->schema([
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make('')
+                            ->schema([
+                                TextInput::make('nombre')
+                                    ->required()
+                                    ->maxLength(50)
+                                    ->unique(ignoreRecord: true),
 
-            TextInput::make('descripcion')
-                ->required()
-                ->maxLength(120),
+                               
+                                Select::make('estado')
+                                    ->options([
+                                        1 => 'Activo',
+                                        0 => 'Inactivo',
+                                    ])
+                                    ->required(),
+                                    Forms\Components\MarkdownEditor::make('descripcion')
+                                    ->required()
+                                    ->maxLength(120)
+                                    ->columnSpan('full'),
 
-            Select::make('estado')
-                ->options([
-                    1 => 'Activo',
-                    0 => 'Inactivo',
-                ])
-                ->required(),
-        ]);
+                            ])->columns(2),
+                    ])->columnSpan(['lg' => 2]),
+            ]);
+
     }
 
     public static function table(Table $table): Table

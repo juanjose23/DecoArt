@@ -8,9 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use App\HasProfilePhoto;
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles , HasPanelShield;
+    use HasFactory, Notifiable, HasRoles , HasPanelShield,HasProfilePhoto;
  
     /**
      * The attributes that are mass assignable.
@@ -44,5 +45,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected $appends = [
+        'profile_photo_url',
+    ];
+ 
+    public function canAccessFilament(): bool
+    {
+        return condition;
+    }
+ 
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->profile_photo_url;
     }
 }

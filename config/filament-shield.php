@@ -4,8 +4,8 @@ return [
     'shield_resource' => [
         'should_register_navigation' => true,
         'slug' => 'shield/roles',
-        'navigation_sort' => -1,
-        'navigation_badge' => true,
+        'navigation_sort' => 0,
+        'navigation_badge' => false,
         'navigation_group' => true,
         'is_globally_searchable' => false,
         'show_model_path' => true,
@@ -25,7 +25,7 @@ return [
     ],
 
     'panel_user' => [
-        'enabled' => true,
+        'enabled' => false,
         'name' => 'panel_user',
     ],
 

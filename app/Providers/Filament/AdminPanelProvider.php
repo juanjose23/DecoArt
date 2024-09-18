@@ -29,6 +29,8 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile()
             ->passwordReset()
+            ->font('Poppins')
+          #  ->brandLogo('')
         ->emailVerification()
             ->colors([
                 'primary' => Color::Amber,

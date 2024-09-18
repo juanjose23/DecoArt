@@ -31,32 +31,64 @@ class SubcategoriasResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                TextInput::make('nombre')
-                    ->label('Nombre')
-                    ->required()
-                    ->maxLength(50)
-                    ->unique(ignoreRecord: true), // Evita duplicados, ignorando el registro actual en la actualización
+        ->schema([
+            Forms\Components\Group::make()
+                ->schema([
+                    Forms\Components\Section::make()
+                        ->schema([
 
-                TextInput::make('descripcion')
-                    ->label('Descripción')
-                    ->required()
-                    ->maxLength(120),
+                            TextInput::make('nombre')
+                                ->required()
+                                ->maxLength(255)
+    
+                                ->unique(ignoreRecord: true),
 
-                Select::make('categoria_id')
-                    ->label('Categoría')
-                    ->relationship('categoria', 'nombre') // Asumiendo que tienes una relación con el modelo Categoría
-                    ->required(),
 
-                Select::make('estado')
-                    ->label('Estado')
-                    ->options([
-                        1 => 'Activo',
-                        0 => 'Inactivo',
-                    ])
-                    ->default(1) // Opcional: define un valor por defecto
-                    ->required(),
-            ]);
+                            Forms\Components\MarkdownEditor::make('descripcion')
+                                ->columnSpan('full'),
+                        ])
+                        ->columns(1),
+
+                  
+
+
+
+                ])
+                ->columnSpan(['lg' => 2]),
+            Forms\Components\Group::make()
+                ->schema([
+                    Forms\Components\Section::make('Categoria')
+                        ->schema([
+                            Select::make('categoria_id')
+                                ->label('Lista de categorias')
+                                ->relationship(name: 'categoria', titleAttribute: 'nombre')
+                                ->searchable()
+                                ->required(),
+                        ]),
+                    Forms\Components\Section::make('Catalogos de estados')
+                        ->schema([
+                            Select::make('estado')
+                                ->options([
+                                    1 => 'Activo',
+                                    0 => 'Inactivo',
+                                ])
+                                ->required()
+                                ->label('Estado del Producto'),
+                         
+
+
+
+                        ]),
+
+
+                ])
+                ->columnSpan(['lg' => 1])
+    
+                
+               
+
+        ])
+        ->columns(3);
     }
 
     public static function table(Table $table): Table
