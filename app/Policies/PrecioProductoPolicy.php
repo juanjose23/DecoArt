@@ -40,7 +40,9 @@ class PrecioProductoPolicy
     public function update(User $user, PrecioProducto $precioProducto): bool
     {
         return $user->can('update_precio::producto');
+
     }
+
 
     /**
      * Determine whether the user can delete the model.

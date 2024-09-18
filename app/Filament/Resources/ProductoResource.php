@@ -191,7 +191,7 @@ class ProductoResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('subcategoria.categoria.nombre')->label('Categoría')->sortable(),
+             
                 TextColumn::make('subcategoria.nombre')->label('Subcategoría')->sortable(),
                 TextColumn::make('nombre')->label('Nombre')->sortable(),
                 TextColumn::make('descripcion')->label('Descripción'),

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Support\Collection;
 class PrecioProducto extends Model
 {
     use HasFactory;
@@ -40,55 +40,8 @@ class PrecioProducto extends Model
 
     public function detalleProducto(): BelongsTo
     {
-        return $this->belongsTo(DetalleProducto::class);
+        return $this->belongsTo(DetalleProducto::class, 'detalleproducto_id');
     }
 
-    public function ObtenerProductosConCategorias()
-    {
-        // Cargar los detalles del producto con las relaciones necesarias
-        $productos = DetalleProducto::with([
-            'producto', 
-            'producto.subcategoria.categoria', 
-            'color', 
-            'marca', 
-            'material'
-        ])
-        ->where('estado', 1)
-        ->whereNotIn('id', function ($query) {
-            $query->select('detalleproducto_id')->from('precio_productos');
-        })
-        ->get()
-        ->sortBy([
-            function ($detalleProducto) {
-                return $detalleProducto->producto->subcategoria->categoria->nombre;
-            },
-            function ($detalleProducto) {
-                return $detalleProducto->producto->subcategoria->nombre;
-            },
-            function ($detalleProducto) {
-                return $detalleProducto->producto->nombre;
-            },
-        ]);
-    
-        // Crear una estructura de resultados agrupados por categoría y subcategoría
-        $resultados = [];
-        foreach ($productos as $detalleProducto) {
-            $categoriaNombre = $detalleProducto->producto->subcategoria->categoria->nombre;
-            $subcategoriaNombre = $detalleProducto->producto->subcategoria->nombre;
-    
-            // Agrupar por categoría, luego por subcategoría
-            $resultados[$categoriaNombre][$subcategoriaNombre][] = [
-                'id' => $detalleProducto->id,
-                'codigo' => $detalleProducto->codigo, 
-                'idproducto' => $detalleProducto->producto->id,
-                'nombre' => $detalleProducto->producto->nombre,
-                'marca' => $detalleProducto->marca->nombre,
-                'material' => $detalleProducto->material->nombre,
-                'color' => $detalleProducto->color->nombre,
-            ];
-        }
-    
-        return $resultados;
-    }
     
 }

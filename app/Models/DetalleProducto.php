@@ -60,5 +60,8 @@ class DetalleProducto extends Model
         return $this->belongsTo(Producto::class, 'producto_id');
     }
 
-    
+    public function precio(): HasMany
+    {
+        return $this->hasMany(PrecioProducto::class);
+    }
 }
