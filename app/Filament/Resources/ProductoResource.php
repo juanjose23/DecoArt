@@ -95,15 +95,15 @@ class ProductoResource extends Resource
                                 Select::make('subcategoria_id')
                                     ->label('Lista de categorias')
                                     ->options(function () {
-                                        // Obtener todas las subcategorías con sus categorías
+                                       
                                         $subcategorias = \App\Models\Subcategorias::with('categoria')->get();
 
-                                        // Agrupar las subcategorías por nombre de la categoría
+                                        
                                         $grouped = $subcategorias->groupBy(function ($subcategoria) {
                                             return $subcategoria->categoria ? $subcategoria->categoria->nombre : 'Sin Categoría';
                                         });
 
-                                        // Transformar el agrupamiento en un formato adecuado para las opciones del Select
+                                     
                                         return $grouped->mapWithKeys(function ($subcategorias, $categoriaNombre) {
                                             return [
                                                 $categoriaNombre => $subcategorias->mapWithKeys(function ($subcategoria) {
@@ -112,7 +112,7 @@ class ProductoResource extends Resource
                                             ];
                                         });
                                     })
-                                    ->searchable() // Habilita la búsqueda en el campo Select
+                                    ->searchable() 
                                     ->required(),
                             ]),
                         Forms\Components\Section::make('Catalogos de estados')
