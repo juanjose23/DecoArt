@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-
+use Filament\Actions\Action;
 class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
@@ -13,6 +13,13 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+        /* Action::make('inWork')
+                ->label('Probando acciones')
+                ->color('success')
+                ->requiresConfirmation()
+                ->action(function (){
+
+                }),*/
             Actions\CreateAction::make()->label('Agregar Usuario'),
         ];
     }

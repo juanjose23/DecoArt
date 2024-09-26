@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use Dompdf\Dompdf;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
@@ -15,7 +16,7 @@ class User extends Authenticatable
     use HasFactory;
     
     use Notifiable;
-  
+   
 
     /**
      * The attributes that are mass assignable.
@@ -26,6 +27,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'estado',
     ];
 
     /**
@@ -68,8 +70,13 @@ class User extends Authenticatable
             ? asset('storage/' . $this->profile_photo_path)
             : 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($this->email))) . '?s=200&d=mp';
     }
-    /*public function roles()
+      public function setPasswordAttribute($value)
     {
-        return $this->belongsToMany(Roles::class);
-    }*/
+        
+        $this->attributes['password'] = $value;
+    }
+    public static function encryptPassword($password)
+    {
+        return Hash::make($password);
+    }
 }

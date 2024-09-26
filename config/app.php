@@ -12,6 +12,7 @@ return [
     | other UI elements where an application name needs to be displayed.
     |
     */
+'charset' => 'UTF-8',
 
     'name' => env('APP_NAME', 'Laravel'),
 
