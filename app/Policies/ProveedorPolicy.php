@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\PrecioProducto;
+use App\Models\Proveedor;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class PrecioProductoPolicy
+class ProveedorPolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class PrecioProductoPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_precio::producto');
+        return $user->can('view_any_proveedor');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, PrecioProducto $precioProducto): bool
+    public function view(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('view_precio::producto');
+        return $user->can('view_proveedor');
     }
 
     /**
@@ -31,23 +31,23 @@ class PrecioProductoPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_precio::producto');
+        return $user->can('create_proveedor');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, PrecioProducto $precioProducto): bool
+    public function update(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('update_precio::producto');
+        return $user->can('update_proveedor');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, PrecioProducto $precioProducto): bool
+    public function delete(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('delete_precio::producto');
+        return $user->can('delete_proveedor');
     }
 
     /**
@@ -55,15 +55,15 @@ class PrecioProductoPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_precio::producto');
+        return $user->can('delete_any_proveedor');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, PrecioProducto $precioProducto): bool
+    public function forceDelete(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('force_delete_precio::producto');
+        return $user->can('force_delete_proveedor');
     }
 
     /**
@@ -71,15 +71,15 @@ class PrecioProductoPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_precio::producto');
+        return $user->can('force_delete_any_proveedor');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, PrecioProducto $precioProducto): bool
+    public function restore(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('restore_precio::producto');
+        return $user->can('restore_proveedor');
     }
 
     /**
@@ -87,15 +87,15 @@ class PrecioProductoPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_precio::producto');
+        return $user->can('restore_any_proveedor');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, PrecioProducto $precioProducto): bool
+    public function replicate(User $user, Proveedor $proveedor): bool
     {
-        return $user->can('replicate_precio::producto');
+        return $user->can('replicate_proveedor');
     }
 
     /**
@@ -103,6 +103,6 @@ class PrecioProductoPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_precio::producto');
+        return $user->can('reorder_proveedor');
     }
 }

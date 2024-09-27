@@ -8,15 +8,20 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Hash;
-
-class User extends Authenticatable
+use Filament\Models\Contracts\HasAvatar;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Illuminate\Support\Facades\Storage;
+class User extends Authenticatable implements HasAvatar
 {
     use HasRoles;
-
+    use HasPanelShield;
     use HasFactory;
     
     use Notifiable;
-   
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url ? Storage::url("$this->avatar_url") : null;
+    }
 
     /**
      * The attributes that are mass assignable.

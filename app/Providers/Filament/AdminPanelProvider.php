@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 use App\Filament\Pages\Settings;
+use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 #use App\Filament\AvatarProviders\BoringAvatarsProvider;
 use App\Http\Middleware\CheckUserRole;
 use Filament\Http\Middleware\Authenticate;
@@ -29,20 +32,21 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->profile()
-          #  ->topNavigation()
-          #->sidebarWidth('15rem')
+            #->profile()
+            #  ->topNavigation()
+            #->sidebarWidth('15rem')
             ->passwordReset()
             ->font('Inter')
-          #  ->brandLogo('')
-        ->emailVerification()
-        ->breadcrumbs(false)
-        ->sidebarCollapsibleOnDesktop()
-       # ->defaultAvatarProvider(BoringAvatarsProvider::class)
-        #->collapsedSidebarWidth('9rem')
+            #  ->brandLogo('')
+            ->emailVerification()
+            ->breadcrumbs(true)
+            ->sidebarCollapsibleOnDesktop()
+            # ->defaultAvatarProvider(BoringAvatarsProvider::class)
+            #->collapsedSidebarWidth('9rem')
             ->colors([
-                'primary' => Color::Indigo,
+                'primary' => Color::Amber,
             ])
+            ->collapsibleNavigationGroups(TRUE)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -50,7 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-               
+
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -66,15 +70,33 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]) ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
-            ])     ->sidebarFullyCollapsibleOnDesktop()
+            ])->plugins([
+                    FilamentEditProfilePlugin::make()
+                    ->slug('Mi-Perfil')
+                    ->setTitle('Mi perfil')
+                    ->setSort(3)
+                    ->shouldRegisterNavigation(false)
+                    ->shouldShowDeleteAccountForm(false)
+                    ->shouldShowBrowserSessionsForm()
+                    ->shouldShowAvatarForm(),
+                    FilamentShieldPlugin::make()
+
+                        ->sectionColumnSpan(1)
+                        ->checkboxListColumns([
+                            'default' => 1,
+                            'sm' => 2,
+                            'lg' => 4,
+                        ])
+                        ->resourceCheckboxListColumns([
+                            'default' => 1,
+                            'sm' => 2,
+                        ]),
+
+                ])#->sidebarFullyCollapsibleOnDesktop()
             ->userMenuItems([
-                'Perfil' => MenuItem::make()->label('Editar perfil'),
-               /* MenuItem::make()
-                ->label('Lock session')
-                ->postAction(fn (): string => route('lock-session'))*/
-                // ...
+
+
             ]);
+        ;
     }
 }

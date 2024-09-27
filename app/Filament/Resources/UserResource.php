@@ -79,11 +79,7 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                // Columna para mostrar el ID del usuario
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable()
-                    ->searchable(),
+              
 
                 // Columna para mostrar el nombre
                 Tables\Columns\TextColumn::make('name')
