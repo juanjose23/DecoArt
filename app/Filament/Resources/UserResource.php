@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Filament\Resources;
-use Barryvdh\DomPDF\Facade\PDF;
+use Rawilk\FilamentPasswordInput\Password;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Forms;
@@ -18,7 +18,7 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-
+    protected static ?string $slug = 'auth/users';
     protected static ?string $navigationIcon = 'heroicon-o-user';
     protected static ?string $navigationGroup = 'Seguridad';
     protected static ?string $navigationLabel = 'Usuarios';
@@ -43,15 +43,15 @@ class UserResource extends Resource
                                     ->required()
                                     ->unique('users', 'email', ignoreRecord: true),
 
-                                Toggle::make('generate_password')
+                                Toggle::make('generar')
                                     ->label('Generar Contraseña'),
 
 
-                                TextInput::make('password')
-                                    ->label('Contraseña Generada')
-                                    ->default(fn($get, $set) => $get('generate_password') ? tap(Str::random(12), fn($password) => $set('password', $password)) : $get('password')) 
-                                    ->extraInputAttributes(['readonly' => 'readonly']) 
-                                    ->dehydrated(fn($get) => !$get('generate_password')),
+                                Password::make('password')
+                                    ->label('Contraseña')
+                                    ->regeneratePassword()
+                                    ->maxLength(8)  
+                                    ->inlineSuffix(),
                                 Select::make('estado')
                                     ->label('Estado')
                                     ->options([
@@ -68,7 +68,7 @@ class UserResource extends Resource
 
 
 
-                            ])->columns(2), // Organiza los inputs en dos columnas
+                            ])->columns(2),
                     ])->columnSpan(['lg' => 2]),
 
 
@@ -79,7 +79,7 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-              
+
 
                 // Columna para mostrar el nombre
                 Tables\Columns\TextColumn::make('name')
@@ -92,7 +92,10 @@ class UserResource extends Resource
                     ->label('Correo Electrónico')
                     ->sortable()
                     ->searchable(),
-
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Rol')
+                    ->badge()
+                    ->sortable(),
                 // Columna para mostrar el estado (Activo/Inactivo)
                 Tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
@@ -107,12 +110,13 @@ class UserResource extends Resource
                     })
                     ->badge()
                     ->color(fn($state) => match ($state) {
-                        1 => 'success',  // Color para 'Activo', puedes usar 'green' o un valor hexadecimal si prefieres
-                        2 => 'warning',  // Color para 'Verificar', puedes usar 'yellow' o un valor hexadecimal
-                        default => 'danger'  // Color para 'Inactivo', puedes usar 'red' o un valor hexadecimal
+                        1 => 'success',
+                        2 => 'warning',
+                        default => 'danger'
                     })
 
                     ->sortable(),
+
                 // Columna para la fecha de creación
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha de Creación')
@@ -130,6 +134,10 @@ class UserResource extends Resource
                     ]),
             ])
             ->actions([
+                #  Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn(User $record) => $record->roles !== 2),
                 Action::make('Verficar')
                     ->action(function (User $record) {
                         return redirect()->route('auth.pdf', ['record' => $record->id]);
@@ -139,8 +147,10 @@ class UserResource extends Resource
 
             ])
             ->bulkActions([
+
                 // Acción en masa para eliminar registros seleccionados
                 Tables\Actions\BulkActionGroup::make([
+
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

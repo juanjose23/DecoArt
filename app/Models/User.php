@@ -8,8 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Hash;
-use Filament\Models\Contracts\HasAvatar;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Storage;
 class User extends Authenticatable implements HasAvatar
 {
@@ -18,10 +18,6 @@ class User extends Authenticatable implements HasAvatar
     use HasFactory;
     
     use Notifiable;
-    public function getFilamentAvatarUrl(): ?string
-    {
-        return $this->avatar_url ? Storage::url("$this->avatar_url") : null;
-    }
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +29,7 @@ class User extends Authenticatable implements HasAvatar
         'email',
         'password',
         'estado',
+        'avatar_url',
     ];
 
     /**
@@ -69,11 +66,13 @@ class User extends Authenticatable implements HasAvatar
         ];
     }
 
-    public function getProfilePhotoUrlAttribute()
+    public function getProfilePhotoUrlAttribute(): ?string
     {
-        return $this->profile_photo_path
-            ? asset('storage/' . $this->profile_photo_path)
-            : 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($this->email))) . '?s=200&d=mp';
+        return $this->avatar_url ? Storage::url("$this->avatar_url") : null;
+    }
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url ? Storage::url("$this->avatar_url") : null;
     }
       public function setPasswordAttribute($value)
     {

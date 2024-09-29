@@ -32,17 +32,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            #->profile()
-            #  ->topNavigation()
-            #->sidebarWidth('15rem')
             ->passwordReset()
             ->font('Inter')
-            #  ->brandLogo('')
             ->emailVerification()
             ->breadcrumbs(true)
             ->sidebarCollapsibleOnDesktop()
-            # ->defaultAvatarProvider(BoringAvatarsProvider::class)
-            #->collapsedSidebarWidth('9rem')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -52,9 +46,17 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
+            #->profile()
+            #  ->topNavigation()
+            #->sidebarWidth('15rem')
+            #  ->brandLogo('')
+            # ->defaultAvatarProvider(BoringAvatarsProvider::class)
+            #->collapsedSidebarWidth('9rem')
+            #->sidebarFullyCollapsibleOnDesktop()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -72,29 +74,41 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])->plugins([
                     FilamentEditProfilePlugin::make()
-                    ->slug('Mi-Perfil')
-                    ->setTitle('Mi perfil')
-                    ->setSort(3)
-                    ->shouldRegisterNavigation(false)
-                    ->shouldShowDeleteAccountForm(false)
-                    ->shouldShowBrowserSessionsForm()
-                    ->shouldShowAvatarForm(),
+                        ->slug('mi-perfil')
+                        ->setTitle('Mi perfil')
+                        ->setSort(3)
+                        ->shouldRegisterNavigation(false)
+                        ->shouldShowDeleteAccountForm(false)
+                        ->shouldShowBrowserSessionsForm()
+                        ->shouldShowAvatarForm(
+                            true,
+                            'avatars',
+                            'mimes:jpeg,png,jpg1max:1024'
+                        ),
                     FilamentShieldPlugin::make()
 
-                        ->sectionColumnSpan(1)
+                        ->gridColumns([
+                            'default' => 1,
+                            'sm' => 1,
+                            'lg' => 2
+                        ])
+                        ->sectionColumnSpan(2)
                         ->checkboxListColumns([
                             'default' => 1,
-                            'sm' => 2,
-                            'lg' => 4,
+                            'sm' => 1,
+                            'lg' => 2,
                         ])
                         ->resourceCheckboxListColumns([
                             'default' => 1,
-                            'sm' => 2,
+                            'sm' => 1
                         ]),
 
-                ])#->sidebarFullyCollapsibleOnDesktop()
+                ])
             ->userMenuItems([
-
+                'profile' => MenuItem::make()
+                    ->label(fn() => auth()->user()->name)
+                    ->url(fn() => EditProfilePage::getUrl())
+                    ->icon('heroicon-m-user-circle'),
 
             ]);
         ;

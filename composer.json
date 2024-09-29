@@ -15,7 +15,8 @@
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
-        "picqer/php-barcode-generator": "^2.4"
+        "picqer/php-barcode-generator": "^2.4",
+        "rawilk/filament-password-input": "^2.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",
