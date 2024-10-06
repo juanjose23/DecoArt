@@ -65,6 +65,10 @@ class User extends Authenticatable implements HasAvatar
             'password' => 'hashed',
         ];
     }
+    public function compras()
+    {
+        return $this->Hasmany(Compras::class);
+    }
 
     public function getProfilePhotoUrlAttribute(): ?string
     {

@@ -33,7 +33,10 @@ class Proveedor extends Model
     protected $casts = [
         'id' => 'integer',
     ];
-
+    public function compras()
+    {
+        return $this->Hasmany(Compras::class);
+    }
     public function contactoProveedors(): HasMany
     {
         return $this->hasMany(ContactoProveedor::class);

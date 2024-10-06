@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs(true)
             ->sidebarCollapsibleOnDesktop()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Red,
             ])
             ->collapsibleNavigationGroups(TRUE)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -46,13 +46,14 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
+            ->databaseNotifications()
             #->profile()
             #  ->topNavigation()
             #->sidebarWidth('15rem')
             #  ->brandLogo('')
             # ->defaultAvatarProvider(BoringAvatarsProvider::class)
             #->collapsedSidebarWidth('9rem')
-            #->sidebarFullyCollapsibleOnDesktop()
+            ->sidebarFullyCollapsibleOnDesktop()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,

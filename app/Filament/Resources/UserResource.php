@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Filament\Resources;
+use Filament\Support\Colors\Color;
 use Rawilk\FilamentPasswordInput\Password;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
@@ -12,8 +13,10 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\Action;
-use Illuminate\Support\Str;
 use Filament\Forms\Components\Toggle;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ActionGroup;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -50,7 +53,7 @@ class UserResource extends Resource
                                 Password::make('password')
                                     ->label('Contraseña')
                                     ->regeneratePassword()
-                                    ->maxLength(8)  
+                                    ->maxLength(8)
                                     ->inlineSuffix(),
                                 Select::make('estado')
                                     ->label('Estado')
@@ -135,8 +138,12 @@ class UserResource extends Resource
             ])
             ->actions([
                 #  Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
+               
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make() 
+                    ->icon('heroicon-m-pencil-square'),
+                    Tables\Actions\DeleteAction::make()
+                ])
                     ->visible(fn(User $record) => $record->roles !== 2),
                 Action::make('Verficar')
                     ->action(function (User $record) {
@@ -150,7 +157,8 @@ class UserResource extends Resource
 
                 // Acción en masa para eliminar registros seleccionados
                 Tables\Actions\BulkActionGroup::make([
-
+                 
+                    RestoreBulkAction::make(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

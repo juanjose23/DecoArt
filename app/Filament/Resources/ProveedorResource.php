@@ -103,8 +103,8 @@ class ProveedorResource extends Resource
                             TextInput::make('ruc')
                                 ->required()
                                 ->unique('proveedors', 'ruc')
-                                ->regex('/^[A-Z]\d{12}$/')
-                                ->maxLength(13),
+                                ->regex('/^\d{13}[A-Z]$/') 
+                                ->maxLength(14), 
 
                             Select::make('estado')
                                 ->required()
