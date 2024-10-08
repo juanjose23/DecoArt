@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->databaseNotifications()
+            ->databaseNotifications(true)
             #->profile()
             #  ->topNavigation()
             #->sidebarWidth('15rem')

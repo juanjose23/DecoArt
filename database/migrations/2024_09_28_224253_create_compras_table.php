@@ -18,15 +18,15 @@ return new class extends Migration {
             $table->dateTime('fecha_recepcion')->notNull();
             $table->text('notas');
             $table->decimal('costo_envio', 10, 2)
-            ->default(0.00);
-        $table->decimal('costo_aduana', 10, 2)
-            ->default(0.00);
-        $table->decimal('iva', 10, 2)
-            ->default(0.00);
-        $table->decimal('subtotal', 10, 2)
-            ->default(0.00);
-        $table->decimal('total', 10, 2)
-            ->default(0.00);
+                ->default(0.00);
+            $table->decimal('costo_aduana', 10, 2)
+                ->default(0.00);
+            $table->decimal('iva', 10, 2)
+                ->default(0.00);
+            $table->decimal('subtotal', 10, 2)
+                ->default(0.00);
+            $table->decimal('total', 10, 2)
+                ->default(0.00);
             $table->integer('estado')->notNull();
             $table->timestamps();
 
@@ -73,7 +73,7 @@ return new class extends Migration {
     {
         Schema::dropIfExists('compras');
         Schema::dropIfExists('detalle_compras');
-       # schema::dropIfExists('costo_compras');
+        # schema::dropIfExists('costo_compras');
         Schema::dropIfExists('recepciones');
         Schema::dropIfExists('detalle_recepciones');
     }

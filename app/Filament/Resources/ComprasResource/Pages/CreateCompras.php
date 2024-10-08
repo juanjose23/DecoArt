@@ -1,22 +1,17 @@
 <?php
 
 namespace App\Filament\Resources\ComprasResource\Pages;
-
 use App\Filament\Resources\ComprasResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use App\Enums\CompraStatus;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
-use App\Models\Compras;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
-use Filament\Notifications\Actions\Action;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
-use Log;
+use Filament\Notifications\Actions\Action;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Compras;
 class CreateCompras extends CreateRecord
 {
     use HasWizard;
@@ -56,28 +51,7 @@ class CreateCompras extends CreateRecord
                 ]),
         ];
     }
-    protected function saveCompra(array $data): void
-    {
-        // Imprime si los campos requeridos están presentes
-        if (!isset($data['costo_envio']) || !isset($data['costo_aduana']) || !isset($data['iva']) || !isset($data['subtotal']) || !isset($data['total'])) {
-            Log::error('Faltan campos en los datos: ' . json_encode($data));
-        }
-        Log::error('no hay campos');
 
-        $compra = Compras::create([
-            'user_id' => $data['user_id'],
-            'codigo' => $data['codigo'],
-            'proveedor_id' => $data['proveedor_id'],
-            'fecha_recepcion' => $data['fecha_recepcion'],
-            'estado' => $data['estado'],
-            'notas' => $data['notas'],
-            'costo_envio' => $data['costo_envio'] ?? 0, // Asegúrate de capturar estos valores
-            'costo_aduana' => $data['costo_aduana'] ?? 0,
-            'iva' => $data['iva'] ?? 0,
-            'subtotal' => $data['subtotal'] ?? 0,
-            'total' => $data['total'] ?? 0,
-        ]);
-    }
 
     protected function afterCreate(): void
     {
@@ -87,12 +61,15 @@ class CreateCompras extends CreateRecord
         Notification::make()
             ->title('Nueva compra')
             ->icon('heroicon-o-shopping-bag')
-            ->body("**{$compras->proveedor?->nombre} compró {$compras->detalleCompras->count()} productos.**")
+            ->success()
+            ->body("**{$compras->proveedor?->nombre} se solicita la compra de {$compras->detalleCompras->count()} productos.**")
             ->actions([
-                Action::make('View')
+                Action::make('Ver')
                     ->url(ComprasResource::getUrl('edit', ['record' => $compras])),
             ])
             ->sendToDatabase($user);
     }
+
+
 
 }

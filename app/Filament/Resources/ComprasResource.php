@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Filament\Resources;
+use Filament\Tables\Actions\ReplicateAction;
+
 use App\Filament\Resources\ComprasResource\Widgets\ComprasWidget;
 use App\Filament\Resources\ComprasResource\Pages;
 use App\Models\Compras;
@@ -17,6 +19,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Wizard;
 use App\Enums\CompraStatus;
 use Filament\Forms\Get;
+use App\Models\Proveedor;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Actions\Action;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -30,42 +34,40 @@ class ComprasResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-        ->schema([
-            Forms\Components\Group::make()
-                ->schema([
+            ->schema([
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make()
+                            ->schema(static::getDetailsFormSchemaupdate())
+                           
+                            ->columns(2),
+
+                        Forms\Components\Section::make('Detalles de la compra')
+
+                            ->schema([
+                                static::getItemsRepeater(),
+                            ]),
+                        
+                    ])
+                    ->columnSpan(['lg' => fn(?Compras $record) => $record === null ? 3 : 2]),
+
+                Forms\Components\Section::make()
+                    ->schema([
+                        Forms\Components\Placeholder::make('created_at')
+                            ->label('Created at')
+                            ->content(fn(Compras $record): ?string => $record->created_at?->diffForHumans()),
+
+                        Forms\Components\Placeholder::make('updated_at')
+                            ->label('Last modified at')
+                            ->content(fn(Compras $record): ?string => $record->updated_at?->diffForHumans()),
+                    ])
+                    ->columnSpan(['lg' => 1])
+                    ->hidden(fn(?Compras $record) => $record === null),
                     Forms\Components\Section::make()
-                        ->schema(static::getDetailsFormSchemaupdate())
-                        ->columns(2),
-
-                    Forms\Components\Section::make('Order items')
-                        ->headerActions([
-                            Action::make('reset')
-                                ->modalHeading('Are you sure?')
-                                ->modalDescription('All existing items will be removed from the order.')
-                                ->requiresConfirmation()
-                                ->color('danger')
-                                ->action(fn (Forms\Set $set) => $set('items', [])),
-                        ])
-                        ->schema([
-                            static::getItemsRepeater(),
-                        ]),
-                ])
-                ->columnSpan(['lg' => fn (?Compras $record) => $record === null ? 3 : 2]),
-
-            Forms\Components\Section::make()
-                ->schema([
-                    Forms\Components\Placeholder::make('created_at')
-                        ->label('Created at')
-                        ->content(fn (Compras $record): ?string => $record->created_at?->diffForHumans()),
-
-                    Forms\Components\Placeholder::make('updated_at')
-                        ->label('Last modified at')
-                        ->content(fn (Compras $record): ?string => $record->updated_at?->diffForHumans()),
-                ])
-                ->columnSpan(['lg' => 1])
-                ->hidden(fn (?Compras $record) => $record === null),
-        ])
-        ->columns(3);
+                            ->schema(static::getCostos())
+                            ->columns(2),
+            ])
+            ->columns(3);
 
     }
     public static function table(Table $table): Table
@@ -84,20 +86,28 @@ class ComprasResource extends Resource
                     ->date()
                     ->sortable(),
 
-
-                    Tables\Columns\TextColumn::make('estado')
+                Tables\Columns\TextColumn::make('subtotal')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('iva')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('total')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('estado')
                     ->label('Estado') // Asigna una etiqueta para la columna
                     ->badge()
                     ->colors([
                         CompraStatus::Nueva->value => CompraStatus::Nueva->getColor(),
-    
+
                     ])
                     ->icons([
                         CompraStatus::Nueva->value => CompraStatus::Nueva->getIcon(),
                     ])
-                    ->formatStateUsing(fn ($state) => CompraStatus::from($state)->getLabel()) // Muestra la etiqueta correspondiente
+                    ->formatStateUsing(fn($state) => CompraStatus::from($state)->getLabel()) // Muestra la etiqueta correspondiente
                     ->sortable(), // Permite que esta columna sea ordenable
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->date()
                     ->sortable()
@@ -109,9 +119,41 @@ class ComprasResource extends Resource
             ])
             ->filters([
                 //
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->label('Responsable')
+                    ->options(User::all()->pluck('name', 'id')) // Obtiene todos los usuarios
+                    ->placeholder('Seleccionar Responsable'),
+
+                Tables\Filters\SelectFilter::make('proveedor_id')
+                    ->label('Proveedor')
+                    ->options(Proveedor::all()->pluck('nombre', 'id')) // Obtiene todos los proveedores
+                    ->placeholder('Seleccionar Proveedor'),
+
+                Tables\Filters\SelectFilter::make('estado')
+                    ->label('Estado')
+                    ->options(CompraStatus::class) // Obtiene todos los estados como opciones
+                    ->placeholder('Seleccionar Estado'),
+
+                /* Tables\Filters\DateFilter::make('fecha_recepcion')
+                     ->label('Fecha de Recepción')
+                     ->placeholder('Seleccionar Fecha'),*/
+
+                /* Tables\Filters\RangeFilter::make('subtotal')
+                     ->label('Subtotal')
+                     ->placeholder('Rango de Subtotal'),
+
+                 Tables\Filters\RangeFilter::make('iva')
+                     ->label('IVA')
+                     ->placeholder('Rango de IVA'),
+
+                 Tables\Filters\RangeFilter::make('total')
+                     ->label('Total')
+                     ->placeholder('Rango de Total'),*/
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                ReplicateAction::make(),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -135,7 +177,7 @@ class ComprasResource extends Resource
             'edit' => Pages\EditCompras::route('/{record}/edit'),
         ];
     }
-  
+
     public static function getWidgets(): array
     {
         return [
@@ -169,17 +211,17 @@ class ComprasResource extends Resource
                 ->inline()
                 ->options([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getLabel(),
-                   
-                    
+
+
                 ])
                 ->colors([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getColor(),
-                  
+
 
                 ])
                 ->icons([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getIcon(),
-                  
+
                 ])
                 ->required(),
 
@@ -218,15 +260,19 @@ class ComprasResource extends Resource
                 ->options([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getLabel(),
                     CompraStatus::Aprobada->value => CompraStatus::Aprobada->getLabel(),
+                    CompraStatus::Cancelada->value => CompraStatus::Cancelada->getLabel(),
                 ])
                 ->colors([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getColor(),
                     CompraStatus::Aprobada->value => CompraStatus::Aprobada->getColor(),
+                    CompraStatus::Cancelada->value => CompraStatus::Cancelada->getColor(),
+
 
                 ])
                 ->icons([
                     CompraStatus::Nueva->value => CompraStatus::Nueva->getIcon(),
                     CompraStatus::Aprobada->value => CompraStatus::Aprobada->getIcon(),
+                    CompraStatus::Cancelada->value => CompraStatus::Cancelada->getIcon(),
                 ])
                 ->required(),
 
@@ -389,5 +435,5 @@ class ComprasResource extends Resource
 
     }
 
-    
+
 }
