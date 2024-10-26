@@ -39,7 +39,7 @@ class ComprasResource extends Resource
                     ->schema([
                         Forms\Components\Section::make()
                             ->schema(static::getDetailsFormSchemaupdate())
-                           
+
                             ->columns(2),
 
                         Forms\Components\Section::make('Detalles de la compra')
@@ -47,7 +47,7 @@ class ComprasResource extends Resource
                             ->schema([
                                 static::getItemsRepeater(),
                             ]),
-                        
+
                     ])
                     ->columnSpan(['lg' => fn(?Compras $record) => $record === null ? 3 : 2]),
 
@@ -60,12 +60,13 @@ class ComprasResource extends Resource
                         Forms\Components\Placeholder::make('updated_at')
                             ->label('Last modified at')
                             ->content(fn(Compras $record): ?string => $record->updated_at?->diffForHumans()),
+                        Forms\Components\Section::make()
+                            ->schema(static::getCostosupdate())
                     ])
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn(?Compras $record) => $record === null),
-                    Forms\Components\Section::make()
-                            ->schema(static::getCostos())
-                            ->columns(2),
+
+
             ])
             ->columns(3);
 
@@ -355,6 +356,54 @@ class ComprasResource extends Resource
                         ]),
                 ]),
         ];
+    }
+    public static function getCostosupdate(): array
+    {
+        return schema([
+            Forms\Components\TextInput::make('costo_envio')
+                ->required()
+                ->numeric()
+                ->reactive()
+                ->default(0)
+                ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
+
+            Forms\Components\TextInput::make('costo_aduana')
+                ->required()
+                ->numeric()
+                ->reactive()
+                ->default(0)
+                ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
+
+            Forms\Components\TextInput::make('iva')
+                ->required()
+                ->numeric()
+                ->reactive()
+                ->readOnly(),
+
+            Forms\Components\TextInput::make('subtotal')
+                ->required()
+                ->numeric()
+                ->readOnly()
+                ->label('Subtotal de la compra')
+                ->reactive(),
+
+            Forms\Components\TextInput::make('total')
+                ->required()
+                ->numeric()
+                ->label('Total de la compra')
+                ->readOnly()
+                ->reactive()
+                ->dehydrateStateUsing(function ($state, callable $get) {
+                    $ivatotal = $get('iva') ?? 0;
+                    $subtotal = $get('subtotal') ?? 0; // Asegúrate de usar 0 si es null
+                    $costoEnvio = $get('costo_envio') ?? 0; // Asegúrate de usar 0 si es null
+                    $costoAduana = $get('costo_aduana') ?? 0; // Asegúrate de usar 0 si es null
+        
+                    return floatval($ivatotal) + floatval($subtotal) + floatval($costoEnvio) + floatval($costoAduana);
+                }),
+
+        ]);
+
     }
     public static function getEloquentQuery(): Builder
     {
