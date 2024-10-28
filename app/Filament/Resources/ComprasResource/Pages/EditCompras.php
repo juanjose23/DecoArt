@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ComprasResource\Pages;
 
 use App\Filament\Resources\ComprasResource;
+use App\Models\Recepciones;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -31,7 +32,48 @@ class EditCompras extends EditRecord
         $titulo = '';
         $icon = 'heroicon-o-shopping-bag';
         $tipoNotificacion = 'success'; // Por defecto, notificación exitosa
-    
+        if ($data['estado'] == 2) {
+            // Buscar si ya existe una recepción para esta compra
+            $recepcion = $record->recepcion;
+        
+            if ($recepcion) {
+                // Si existe, actualiza la fecha de recepción y el estado
+                $recepcion->update([
+                    'fecha_recepcion' => now(),
+                    'estado' => 1,
+                ]);
+            } else {
+                // Si no existe, crea una nueva recepción
+                $recepcion = $record->recepcion()->create([
+                    'fecha_recepcion' => $record->fecha_recepcion,
+                    'estado' => 1,
+                ]);
+            }
+        
+            // Ahora recorremos los detalles de la compra
+            foreach ($record->detalleCompras as $detalle) {
+                // Buscar si ya existe el detalle de recepción para este producto en la recepción actual
+                $detalleRecepcion = $recepcion->detalleRecepciones()
+                    ->where('detalleproducto_id', $detalle->detalleproducto_id)
+                    ->first();
+        
+                if ($detalleRecepcion) {
+                    // Si existe, actualiza la cantidad esperada (si es necesario) y cantidad recibida
+                    $detalleRecepcion->update([
+                        'cantidad_esperada' => $detalle->cantidad,
+                        'cantidad_recibida' => $detalleRecepcion->cantidad_recibida, // Mantén el valor existente de cantidad recibida
+                    ]);
+                } else {
+                    // Si no existe, crea el detalle de recepción
+                    $recepcion->detalleRecepciones()->create([
+                        'detalleproducto_id' => $detalle->detalleproducto_id,
+                        'cantidad_esperada' => $detalle->cantidad,
+                        'cantidad_recibida' => 0,
+                    ]);
+                }
+            }
+        }
+        
         switch ($data['estado']) {
             case 2:
                 $titulo = 'Compra Aceptada';
@@ -65,6 +107,7 @@ class EditCompras extends EditRecord
             ->sendToDatabase($user);
         
         return $record;
+
     }
     
 

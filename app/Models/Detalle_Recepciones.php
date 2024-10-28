@@ -8,4 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class Detalle_Recepciones extends Model
 {
     use HasFactory;
+    protected $table ="detalle_recepciones";
+    protected $fillable = [
+        'recepciones_id', 
+        'detalleproducto_id',  
+        'cantidad_recibida', 
+        'cantidad_esperada'
+    ];
+    public function recepciones()
+    {
+        return $this->belongsTo(Recepciones::class);
+    }
+    public function detalleProductos()
+    {
+        return $this->belongsTo(DetalleProducto::class,'detalleproducto_id');
+    }
+    
 }
+

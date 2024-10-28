@@ -32,9 +32,9 @@ class Compras extends Model
         return $this->HasMany(Detalle_Compras::class);
     }
 
-    public function costoCompra()
+    public function recepcion()
     {
-        return $this->hasOne(Costo_Compras::class, 'compra_id');
+        return $this->hasOne(Recepciones::class, 'compras_id');
     }
 
     public function user()
