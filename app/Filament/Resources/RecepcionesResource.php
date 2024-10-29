@@ -18,7 +18,8 @@ use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use App\Enums\CompraStatus;
-
+use Closure;
+use Filament\Forms\Get;
 class RecepcionesResource extends Resource
 {
     protected static ?string $model = Recepciones::class;
@@ -55,27 +56,27 @@ class RecepcionesResource extends Resource
                                             ->label('Nombre del Proveedor')
                                             ->content(fn(Recepciones $record): ?string => $record->compras->proveedor->nombre ?? 'Sin proveedor'),
 
-                                       
-            Forms\Components\ToggleButtons::make('estado')
-            ->inline()
-            ->options([
-                CompraStatus::EnProceso->value => CompraStatus::EnProceso->getLabel(),
-                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getLabel(),
-                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getLabel(),
-            ])
-            ->colors([
-                CompraStatus::Nueva->value => CompraStatus::EnProceso->getColor(),
-                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getColor(),
-                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getColor(),
+
+                                        Forms\Components\ToggleButtons::make('estado')
+                                            ->inline()
+                                            ->options([
+                                                CompraStatus::EnProceso->value => CompraStatus::EnProceso->getLabel(),
+                                                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getLabel(),
+                                                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getLabel(),
+                                            ])
+                                            ->colors([
+                                                CompraStatus::Nueva->value => CompraStatus::EnProceso->getColor(),
+                                                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getColor(),
+                                                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getColor(),
 
 
-            ])
-            ->icons([
-                CompraStatus::EnProceso->value => CompraStatus::EnProceso->getIcon(),
-                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getIcon(),
-                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getIcon(),
-            ])
-            ->required(),
+                                            ])
+                                            ->icons([
+                                                CompraStatus::EnProceso->value => CompraStatus::EnProceso->getIcon(),
+                                                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getIcon(),
+                                                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getIcon(),
+                                            ])
+                                            ->required(),
 
 
                                     ])
@@ -120,6 +121,10 @@ class RecepcionesResource extends Resource
                                                             ->label('Cantidad Recibida')
                                                             ->required()
                                                             ->numeric(),
+                                                        Forms\Components\Datepicker::make('fecha_vencimiento')
+                                                            ->label('Fecha de Expiración')
+                                                            ->required(fn(Get $get) => DetalleProducto::find($get('detalleproducto_id'))?->producto->es_caducable ?? false),
+
                                                     ]),
                                             ])
                                             ->minItems(1)
@@ -152,7 +157,7 @@ class RecepcionesResource extends Resource
                     ->label('Fecha de Recepción')
                     ->dateTime()
                     ->sortable(),
-                    Tables\Columns\TextColumn::make('estado')
+                Tables\Columns\TextColumn::make('estado')
                     ->label('Estado') // Asigna una etiqueta para la columna
                     ->badge()
                     ->colors([
@@ -198,7 +203,7 @@ class RecepcionesResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->hidden(fn($record) => in_array($record->estado, [4, 5])),
             ])
-            
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -222,7 +227,7 @@ class RecepcionesResource extends Resource
     {
         return [
             'index' => Pages\ListRecepciones::route('/'),
-            'create' => Pages\CreateRecepciones::route('/create'),
+      
             'edit' => Pages\EditRecepciones::route('/{record}/edit'),
         ];
     }

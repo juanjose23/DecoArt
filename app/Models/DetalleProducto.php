@@ -68,4 +68,9 @@ class DetalleProducto extends Model
     {
         return $this->hasMany(PrecioProducto::class);
     }
+
+    public function transacciones()
+    {
+        return $this->hasMany(Transacciones::class);
+    }
 }
