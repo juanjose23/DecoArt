@@ -197,8 +197,9 @@ class ComprasResource extends Resource
                      ->placeholder('Rango de Total'),*/
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                ReplicateAction::make(),
+                Tables\Actions\EditAction::make()   
+                ->hidden(fn($record) => in_array($record->estado, [4])),
+                
 
             ])
             ->bulkActions([
