@@ -32,7 +32,7 @@ class ProductosSeeders extends Seeder
             
             $combinacionesUsadas = []; 
         
-            for ($i = 0; $i < 50; $i++) {
+            for ($i = 0; $i < 10; $i++) {
                 
                 do {
                     $colorId = rand(1, 10);

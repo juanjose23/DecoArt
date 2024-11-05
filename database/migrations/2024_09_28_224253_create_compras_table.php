@@ -59,6 +59,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('recepciones_id');
             $table->unsignedBigInteger('detalleproducto_id');
+            $table->dateTime('fecha_vencimiento')->nullable();
             $table->integer('cantidad_esperada')->default(0);
             $table->integer('cantidad_recibida')->default(0);
             $table->timestamps();

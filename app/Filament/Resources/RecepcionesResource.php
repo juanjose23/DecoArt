@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RecepcionesResource\Pages;
-use App\Filament\Resources\RecepcionesResource\RelationManagers;
 use App\Models\Recepciones;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,14 +11,13 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Models\Compras;
 use App\Models\DetalleProducto;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use App\Enums\CompraStatus;
 use Closure;
-use Filament\Forms\Get;
+use App\Models\Inventarios;
 class RecepcionesResource extends Resource
 {
     protected static ?string $model = Recepciones::class;
@@ -31,7 +29,8 @@ class RecepcionesResource extends Resource
     protected static ?string $navigationGroup = 'Compras';
     public static function form(Form $form): Form
     {
-        return $form
+        $form
+
             ->schema([
                 Forms\Components\Grid::make(3)
                     ->schema([
@@ -46,16 +45,14 @@ class RecepcionesResource extends Resource
                                             ->disabled()
                                             ->required(),
 
-                                        Forms\Components\TextInput::make('fecha_recepcion')
-                                            ->label('Fecha de Entrega')
-                                            ->required()
-                                            ->maxLength(50)
-                                            ->readOnly(),
+
+                                        Forms\Components\Placeholder::make('')
+                                            ->label('Nombre del Proveedor')
+                                            ->content(fn(Recepciones $record): ?string => $record->fecha_recepcion),
 
                                         Forms\Components\Placeholder::make('nombre')
                                             ->label('Nombre del Proveedor')
                                             ->content(fn(Recepciones $record): ?string => $record->compras->proveedor->nombre ?? 'Sin proveedor'),
-
 
                                         Forms\Components\ToggleButtons::make('estado')
                                             ->inline()
@@ -64,21 +61,7 @@ class RecepcionesResource extends Resource
                                                 CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getLabel(),
                                                 CompraStatus::Cancelada->value => CompraStatus::Cancelada->getLabel(),
                                             ])
-                                            ->colors([
-                                                CompraStatus::Nueva->value => CompraStatus::EnProceso->getColor(),
-                                                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getColor(),
-                                                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getColor(),
-
-
-                                            ])
-                                            ->icons([
-                                                CompraStatus::EnProceso->value => CompraStatus::EnProceso->getIcon(),
-                                                CompraStatus::Recepcionada->value => CompraStatus::Recepcionada->getIcon(),
-                                                CompraStatus::Cancelada->value => CompraStatus::Cancelada->getIcon(),
-                                            ])
                                             ->required(),
-
-
                                     ])
                                     ->columns(1),
                             ])
@@ -108,23 +91,61 @@ class RecepcionesResource extends Resource
                                                                     ];
                                                                 });
                                                             })
-                                                            ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                                                            ->searchable()
-                                                            ->distinct()
-                                                            ->required(),
+                                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                                // Obtén el stock máximo del inventario correspondiente
+                                                                $inventario = Inventarios::where('detalleproducto_id', $state)->first();
+
+                                                                if ($inventario) {
+                                                                    // Establecer la regla de validación basada en el stock máximo
+                                                                    $set('cantidad_recibida_rule', "max:{$inventario->stock_maximo}");
+                                                                } else {
+                                                                    // Si no hay inventario, puedes eliminar la regla o establecer alguna por defecto
+                                                                    $set('cantidad_recibida_rule', null);
+                                                                }
+                                                            })
+                                                            ->disabled(),
+
                                                         Forms\Components\TextInput::make('cantidad_esperada')
                                                             ->label('Cantidad Esperada')
                                                             ->required()
-                                                            ->numeric()
-                                                            ->readOnly(),
+                                                            ->numeric(),
+
                                                         Forms\Components\TextInput::make('cantidad_recibida')
                                                             ->label('Cantidad Recibida')
                                                             ->required()
-                                                            ->numeric(),
-                                                        Forms\Components\Datepicker::make('fecha_vencimiento')
-                                                            ->label('Fecha de Expiración')
-                                                            ->required(fn(Get $get) => DetalleProducto::find($get('detalleproducto_id'))?->producto->es_caducable ?? false),
+                                                            ->numeric()
+                                                            ->rule(function ($get) {
+                                                                // Obtén el ID del producto
+                                                                $detalleProductoId = $get('detalleproducto_id'); // Asegúrate de que el ID esté disponible en este contexto
+                                                                // Obtén el stock máximo usando la función
+                                                                $stockDisponible = self::getStockDisponible($detalleProductoId);
+                                                                if ($stockDisponible !== null) {
+                                                                    $stockActual = $stockDisponible['stock_actual'];
+                                                                    $stockMaximo = $stockDisponible['stock_maximo'];
+                                                                    $cantidadEsperada = $get('cantidad_esperada');
+                                                    
+                                                                    // Verifica que la cantidad recibida no exceda el stock disponible
+                                                                    return [
+                                                                        'max:' . $stockMaximo-$stockActual, // Verifica que la cantidad recibida no exceda el stock actual
+                                                                        'not_in:' . ($stockMaximo - $stockActual - $cantidadEsperada), 
+                                                                    ];
+                                                                }
 
+                                                                return [];
+                                                            }),
+                                                        Forms\Components\DatePicker::make('fecha_vencimiento')
+                                                            ->label('Fecha de Expiración')
+                                                            ->required(function ($get) {
+                                                                $detalleProducto = DetalleProducto::find($get('detalleproducto_id'));
+                                                                return $detalleProducto?->producto->caducidad ?? false;
+                                                            })
+                                                            ->hidden(function ($get) {
+                                                                // Oculta el campo si el producto no es caducable
+                                                                $detalleProducto = DetalleProducto::find($get('detalleproducto_id'));
+                                                                return !($detalleProducto?->producto->caducidad ?? false);
+                                                            })
+
+                                                            ->displayFormat('Y-m-d H:i'),
                                                     ]),
                                             ])
                                             ->minItems(1)
@@ -136,7 +157,26 @@ class RecepcionesResource extends Resource
                             ->columnSpan(2),
                     ]),
             ]);
+
+        return $form;
     }
+    protected static function getStockDisponible($detalleproductoId): ?array
+{
+    // Busca el inventario correspondiente al detalle del producto
+    $inventario = Inventarios::where('detalleproducto_id', $detalleproductoId)->first();
+
+     // Si el inventario existe, devuelve el stock actual y el stock máximo, de lo contrario, null
+     if ($inventario) {
+        return [
+            'stock_actual' => $inventario->stock_actual,
+            'stock_maximo' => $inventario->stock_maximo,
+        ];
+    }
+
+    return null; // Si no hay inventario, devuelve null
+}
+
+
     public static function table(Table $table): Table
     {
         return $table
@@ -201,6 +241,7 @@ class RecepcionesResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+
                     ->hidden(fn($record) => in_array($record->estado, [4, 5])),
             ])
 
@@ -227,7 +268,7 @@ class RecepcionesResource extends Resource
     {
         return [
             'index' => Pages\ListRecepciones::route('/'),
-      
+
             'edit' => Pages\EditRecepciones::route('/{record}/edit'),
         ];
     }

@@ -18,7 +18,7 @@ class Lotes extends Model
     ];
     public function loteDetalles()
     {
-        return $this->hasMany(LoteDetalle::class);
+        return $this->hasMany(LoteDetalle::class,'lote_id');
     }
 
     

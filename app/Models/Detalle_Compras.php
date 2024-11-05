@@ -19,7 +19,7 @@ class Detalle_Compras extends Model
     ];
     public function detalleProductos()
     {
-        return $this->belongsTo(DetalleProducto::class);
+        return $this->belongsTo(DetalleProducto::class,'detalleproducto_id');
     }
     public function compras()
     {

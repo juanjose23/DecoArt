@@ -10,10 +10,5 @@ class ViewInventarios extends ViewRecord
 {
     protected static string $resource = InventariosResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\EditAction::make(),
-        ];
-    }
+   
 }

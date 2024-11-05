@@ -23,6 +23,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\MenuItem;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -103,7 +104,7 @@ class AdminPanelProvider extends PanelProvider
                             'default' => 1,
                             'sm' => 1
                         ]),
-
+                     
                 ])
             ->userMenuItems([
                 'profile' => MenuItem::make()

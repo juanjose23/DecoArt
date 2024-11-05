@@ -11,7 +11,8 @@ class Detalle_Recepciones extends Model
     protected $table ="detalle_recepciones";
     protected $fillable = [
         'recepciones_id', 
-        'detalleproducto_id',  
+        'detalleproducto_id', 
+        'fecha_vencimiento', 
         'cantidad_recibida', 
         'cantidad_esperada'
     ];

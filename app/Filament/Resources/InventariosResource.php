@@ -98,7 +98,23 @@ class InventariosResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                ->modalHeading('Editar Registro')
+                ->form(fn($record) => [
+                    Forms\Components\TextInput::make('stock_minimo')
+                        ->label('Stock Mínimo')
+                        ->required()
+                        ->numeric()
+                        ->minValue(0)
+                        ->default($record->stock_minimo),
+                    
+                    Forms\Components\TextInput::make('stock_maximo')
+                        ->label('Stock Máximo')
+                        ->required()
+                        ->numeric()
+                        ->minValue(0)
+                        ->default($record->stock_maximo),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -119,7 +135,7 @@ class InventariosResource extends Resource
         return [
             'index' => Pages\ListInventarios::route('/'),
             'view' => Pages\ViewInventarios::route('/{record}'),
-            'edit' => Pages\EditInventarios::route('/{record}/edit'),
+          
         ];
     }
 }
