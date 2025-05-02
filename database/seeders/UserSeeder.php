@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'email' => 'juan@example.com',
                 'password' => Hash::make('12345678'),
                 'created_at' => now(),
+                'es_interno'=>true,
                 'estado'=>1,
             ],
             [
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
                 'email' => 'katherine@example.com',
                 'password' => Hash::make('12345678'),
                 'created_at' => now(),
+                'es_interno'=>true,
                 'estado'=>1,
             ],
             [
@@ -34,6 +36,7 @@ class UserSeeder extends Seeder
                 'email' => 'fernanda@example.com',
                 'password' => Hash::make('12345678'),
                 'created_at' => now(),
+                'es_interno'=>false,
                 'estado'=>1,
             ],
         ];

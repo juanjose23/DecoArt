@@ -24,15 +24,15 @@ class ListUsers extends ListRecords
             Actions\CreateAction::make()->label('Agregar Usuario'),
         ];
     }
-    public function getTabs(): array
-    {
-        return [
-            null => Tab::make('All'),
-            'new' => Tab::make(),
-            'processing' => Tab::make(),
-            'shipped' => Tab::make(),
-            'delivered' => Tab::make(),
-            'cancelled' => Tab::make(),
-        ];
-    }
+    // public function getTabs(): array
+    // {
+    //     return [
+    //         null => Tab::make('All'),
+    //         'new' => Tab::make(),
+    //         'processing' => Tab::make(),
+    //         'shipped' => Tab::make(),
+    //         'delivered' => Tab::make(),
+    //         'cancelled' => Tab::make(),
+    //     ];
+    // }
 }

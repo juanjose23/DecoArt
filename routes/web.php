@@ -15,3 +15,13 @@ Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback
 Route::post('/logout',[AuthController::class,'logout'])->name('logout');
 
 Route::get('/Auth/pdf/{record}', [ExportPdfController::class, 'pdf'])->name('auth.pdf')->middleware('auth');
+
+
+Route::get('email/verify', function () {
+    return view('auth.verify');
+})->name('verification.notice');
+
+Route::get('email/verify/{id}/{hash}', function ($id, $hash) {
+    // Verifica el ID y el hash del usuario, y marca el correo electrónico como verificado
+    // Implementa la lógica necesaria para verificar el correo electrónico.
+})->name('verification.verify');

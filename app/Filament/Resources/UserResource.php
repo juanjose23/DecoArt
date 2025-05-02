@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Filament\Resources;
+use Filament\Forms\Components\Hidden;
 use Filament\Support\Colors\Color;
 use Rawilk\FilamentPasswordInput\Password;
 use App\Filament\Resources\UserResource\Pages;
@@ -17,6 +18,8 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Get;
+use Illuminate\Database\Eloquent\Builder;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -46,9 +49,6 @@ class UserResource extends Resource
                                     ->required()
                                     ->unique('users', 'email', ignoreRecord: true),
 
-                                Toggle::make('generar')
-                                    ->label('Generar Contraseña'),
-
 
                                 Password::make('password')
                                     ->label('Contraseña')
@@ -57,11 +57,12 @@ class UserResource extends Resource
                                     ->inlineSuffix(),
                                 Select::make('estado')
                                     ->label('Estado')
-                                    ->options([
-                                        2 => 'Verificar',
-                                        1 => 'Activo',
-                                        0 => 'Inactivo',
-                                    ])
+                                    ->options(function (Get $get) use ($form) {
+                                        $isCreating = $form->getOperation() === 'create';
+                                        return $isCreating
+                                            ? [2 => 'Verificar', 0 => 'Inactivo']
+                                            : [2 => 'Verificar', 1 => 'Activo', 0 => 'Inactivo'];
+                                    })
                                     ->required(),
                                 Forms\Components\Select::make('roles')
                                     ->relationship('roles', 'name')
@@ -72,10 +73,16 @@ class UserResource extends Resource
 
 
                             ])->columns(2),
+                            
+                           
+                         
+
+                         
                     ])->columnSpan(['lg' => 2]),
 
 
             ]);
+            
     }
 
     public static function table(Table $table): Table
@@ -164,7 +171,11 @@ class UserResource extends Resource
             ]);
     }
 
-
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('es_interno', true); // Solo muestra usuarios del sistema
+    }
     public static function getRelations(): array
     {
         return [

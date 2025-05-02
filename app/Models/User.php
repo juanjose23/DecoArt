@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Storage;
-class User extends Authenticatable implements HasAvatar
+use Filament\Models\Contracts\FilamentUser;
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasRoles;
     use HasPanelShield;
@@ -40,8 +41,7 @@ class User extends Authenticatable implements HasAvatar
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
+      
     ];
 
     /**
@@ -65,11 +65,20 @@ class User extends Authenticatable implements HasAvatar
             'password' => 'hashed',
         ];
     }
+    
     public function compras()
     {
         return $this->Hasmany(Compras::class);
     }
-
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            if (is_null($user->es_interno)) {
+                $user->es_interno = true;
+            }
+        });
+    }
+    
     public function getProfilePhotoUrlAttribute(): ?string
     {
         return $this->avatar_url ? Storage::url("$this->avatar_url") : null;

@@ -41,6 +41,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Red,
             ])
+          
+            ->spa(true)
             ->collapsibleNavigationGroups(TRUE)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -76,17 +78,19 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])->plugins([
                     FilamentEditProfilePlugin::make()
-                        ->slug('mi-perfil')
-                        ->setTitle('Mi perfil')
-                        ->setSort(3)
-                        ->shouldRegisterNavigation(false)
-                        ->shouldShowDeleteAccountForm(false)
-                        ->shouldShowBrowserSessionsForm()
-                        ->shouldShowAvatarForm(
-                            true,
-                            'avatars',
-                            'mimes:jpeg,png,jpg1max:1024'
-                        ),
+                    ->slug('mi-perfil')
+                    ->setTitle('My Profile')
+                    ->setNavigationLabel('My Profile')
+                    ->setNavigationGroup('Group Profile')
+                    ->setIcon('heroicon-o-user')
+                    ->setSort(10)
+                    ->canAccess(fn () => auth()->user()->id === 1)
+                    ->shouldRegisterNavigation(false)
+                    ->shouldShowDeleteAccountForm(false)
+                 
+                    ->shouldShowBrowserSessionsForm()
+                    ->shouldShowAvatarForm()
+                   ,
                     FilamentShieldPlugin::make()
 
                         ->gridColumns([
@@ -110,7 +114,8 @@ class AdminPanelProvider extends PanelProvider
                 'profile' => MenuItem::make()
                     ->label(fn() => auth()->user()->name)
                     ->url(fn() => EditProfilePage::getUrl())
-                    ->icon('heroicon-m-user-circle'),
+                  
+                   
 
             ]);
         ;

@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Media;
-use App\Models\RolesUsuarios;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -11,10 +9,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Crypt;
+
+use Illuminate\Support\Facades\Validator;
 class RegistroUsuariosService
 {
     protected $userModel;
@@ -37,11 +35,22 @@ class RegistroUsuariosService
 
     public function register(array $data)
     {
+       // Crear la validación para el correo electrónico
+    $validator = Validator::make($data, [
+        'email' => 'required|email|unique:users,email',
+        // otras reglas de validación, como la contraseña, etc.
+    ]);
+
+    // Si la validación falla, lanzar una excepción de validación
+    if ($validator->fails()) {
+        throw new ValidationException($validator);
+    }
         try {
 
             $user = $this->userModel->newInstance();
             $user->name = $data['name'];
             $user->email = $data['email'];
+            $user->estado = 1;
 
             // Validar y asignar contraseña
             if (!empty($data['password'])) {
@@ -244,9 +253,6 @@ class RegistroUsuariosService
     }
     public function logout($request)
     {
-        // Obtener el identificador único de la sesión actual
-        $sessionId = $request->session()->getId();
-
         // Cerrar la sesión del usuario
         Auth::logout();
 
@@ -258,62 +264,6 @@ class RegistroUsuariosService
         // Regenerar el token de CSRF
         $request->session()->regenerateToken();
     }
-   /* public function obtenerRolValido(int $userId): bool
-    {
-        return $this->rolesUsuariosModel->where('users_id', $userId)
-            ->where('roles_id', '!=', 1)
-            ->where('estado', 1)
-            ->exists();
-    }*/
-    /**
-     * Obtener los privilegios de un usuario por su ID.
-     *
-     * @param  int  $id  El ID del usuario.
-     * @return array     Los privilegios del usuario.
-     */
-   /* public function ObtenerPrivilegiosUsuario(int $id)
-    {
-        // Realizar la consulta para obtener los privilegios del usuario
-        $resultado = db::table('privilegiosroles  as pr')
-            ->select('pr.submodulos_id', 'm.id AS id_modulo', 'm.nombre AS modulo', 'm.icono', 'sm.nombre AS submodulo', 'sm.enlace', 'rt.roles_id AS id_rol_temporal')
-            ->join('submodulos AS sm', 'sm.id', '=', 'pr.submodulos_id')
-            ->join('modulos AS m', 'm.id', '=', 'sm.modulos_id')
-            ->leftJoin('rolesusuarios AS rt', 'rt.roles_id', '=', 'pr.roles_id')
-            ->leftJoin('users AS u', 'rt.users_id', '=', 'u.id')
-            ->where('rt.users_id', '=', $id)
-            ->where('rt.estado', '=', 1)
-            ->get();
-
-        // Inicializar un arreglo para almacenar los modulos y submodulos
-        $modulos = array();
-        foreach ($resultado as $row) {
-            $modulo_id = $row->id_modulo;
-            $submodulo_id = $row->submodulos_id;
-
-            // Verificar si el modulo ya existe en el arreglo, sino agregarlo
-            if (!isset($modulos[$modulo_id])) {
-                $modulos[$modulo_id] = array(
-                    'id' => $modulo_id,
-                    'nombre' => $row->modulo,
-                    'icono' => $row->icono,
-                    'submodulos' => array()
-                );
-            }
-
-            // Verificar si el submodulo no está vacío, si no está vacío agregarlo al modulo correspondiente
-            if (!empty($submodulo_id)) {
-                $submodulo = array(
-                    'id' => $submodulo_id,
-                    'nombre' => $row->submodulo,
-                    'enlace' => $row->enlace
-                );
-                $modulos[$modulo_id]['submodulos'][] = $submodulo;
-            }
-        }
-
-
-        // Retornar los privilegios estructurados
-        return $modulos;
-    }*/
+ 
 
 }
