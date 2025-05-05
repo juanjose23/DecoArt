@@ -1,13 +1,12 @@
 <?php
 
 namespace App\Filament\Resources;
-use Filament\Tables\Actions\ReplicateAction;
-
 use App\Filament\Resources\ComprasResource\Widgets\ComprasWidget;
 use App\Filament\Resources\ComprasResource\Pages;
 use App\Models\Compras;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -16,13 +15,10 @@ use App\Models\DetalleProducto;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Wizard;
 use App\Enums\CompraStatus;
-use Filament\Forms\Get;
 use App\Models\Proveedor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Forms\Components\Actions\Action;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ComprasResource extends Resource
 {
@@ -65,44 +61,37 @@ class ComprasResource extends Resource
                                 Forms\Components\TextInput::make('costo_envio')
                                     ->required()
                                     ->numeric()
-                                    ->reactive()
                                     ->default(0)
-                                    ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
+                                    ->reactive()
+                                    ->afterStateUpdated(fn($set, $state, $get) => self::updateTotal($set, $get)),
 
                                 Forms\Components\TextInput::make('costo_aduana')
                                     ->required()
                                     ->numeric()
-                                    ->reactive()
                                     ->default(0)
-                                    ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
+                                    ->reactive()
+                                    ->afterStateUpdated(fn($set, $state, $get) => self::updateTotal($set, $get)),
 
                                 Forms\Components\TextInput::make('iva')
                                     ->required()
                                     ->numeric()
-                                    ->reactive()
-                                    ->readOnly(),
+                                    ->readOnly()
+                                    ->reactive(),
 
                                 Forms\Components\TextInput::make('subtotal')
                                     ->required()
                                     ->numeric()
                                     ->readOnly()
-                                    ->label('Subtotal de la compra')
-                                    ->reactive(),
+                                    ->reactive()
+                                    ->label('Subtotal de la compra'),
 
                                 Forms\Components\TextInput::make('total')
                                     ->required()
                                     ->numeric()
-                                    ->label('Total de la compra')
                                     ->readOnly()
                                     ->reactive()
-                                    ->dehydrateStateUsing(function ($state, callable $get) {
-                                        $ivatotal = $get('iva') ?? 0;
-                                        $subtotal = $get('subtotal') ?? 0; // Asegúrate de usar 0 si es null
-                                        $costoEnvio = $get('costo_envio') ?? 0; // Asegúrate de usar 0 si es null
-                                        $costoAduana = $get('costo_aduana') ?? 0; // Asegúrate de usar 0 si es null
-                            
-                                        return floatval($ivatotal) + floatval($subtotal) + floatval($costoEnvio) + floatval($costoAduana);
-                                    }),
+                                    ->label('Total de la compra'),
+
 
                             ]),
 
@@ -197,9 +186,9 @@ class ComprasResource extends Resource
                      ->placeholder('Rango de Total'),*/
             ])
             ->actions([
-                Tables\Actions\EditAction::make()   
-                ->hidden(fn($record) => in_array($record->estado, [4])),
-                
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn($record) => in_array($record->estado, [4])),
+
 
             ])
             ->bulkActions([
@@ -332,75 +321,99 @@ class ComprasResource extends Resource
     }
     protected static function updateTotal(callable $set, callable $get): void
     {
-        $subtotal = array_reduce($get('detalleCompras'), function ($carry, $detalle) {
-            return $carry + floatval($detalle['subtotal'] ?? 0);
-        }, 0);
-        $ivatotal = array_reduce($get('detalleCompras'), function ($carry, $detalle) {
-            return $carry + floatval($detalle['iva_unitario'] ?? 0);
-        }, 0);
-        $iva = $ivatotal;
+        $detalles = $get('detalleCompras') ?? [];
+
+        $subtotal = 0;
+        $iva = 0;
+
+        foreach ($detalles as $detalle) {
+            $cantidad = floatval($detalle['cantidad'] ?? 0);
+            $precio = floatval($detalle['precio_unitario'] ?? 0);
+            $ivaPorcentaje = floatval($detalle['iva_unitario'] ?? 0); // porcentaje
+
+            $subtotalItem = $cantidad * $precio;
+            $subtotal += $subtotalItem;
+
+            $iva += $subtotalItem * ($ivaPorcentaje / 100);
+        }
+
         $costoEnvio = floatval($get('costo_envio') ?? 0);
         $costoAduana = floatval($get('costo_aduana') ?? 0);
-
         $total = $subtotal + $iva + $costoEnvio + $costoAduana;
 
-        $set('subtotal', $subtotal);
-        $set('iva', $iva);
-        $set('total', $total);
+        $set('subtotal', number_format($subtotal, 2, '.', ''));
+        $set('iva', number_format($iva, 2, '.', ''));
+        $set('total', number_format($total, 2, '.', ''));
     }
+
 
     public static function getCostos(): array
     {
         return [
             Forms\Components\Section::make('Costos de la compra')
-
+                ->description('Resumen de costos calculados e ingresados manualmente.')
                 ->schema([
-                    Grid::make(1)  // Crea un grid de dos columnas
+                    Grid::make(2)
                         ->schema([
-                            Forms\Components\TextInput::make('costo_envio')
-                                ->required()
-                                ->numeric()
-                                ->reactive()
-                                ->default(0)
-                                ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
 
-                            Forms\Components\TextInput::make('costo_aduana')
-                                ->required()
-                                ->numeric()
-                                ->reactive()
-                                ->default(0)
-                                ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
+                            // Costos manuales
+                            Forms\Components\Card::make([
+                                Forms\Components\TextInput::make('costo_envio')
+                                    ->label('Costo de Envío')
+                                    ->required()
+                                    ->numeric()
+                                    ->lazy() // Solo actualiza cuando el campo pierde el foco
+                                    ->default(0)
+                                    ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
 
-                            Forms\Components\TextInput::make('iva')
-                                ->required()
-                                ->numeric()
-                                ->reactive()
-                                ->readOnly(),
+                                Forms\Components\TextInput::make('costo_aduana')
+                                    ->label('Costo de Aduana')
+                                    ->required()
+                                    ->numeric()
+                                    ->lazy()
+                                    ->default(0)
+                                    ->afterStateUpdated(fn(callable $set, $state, $get) => self::updateTotal($set, $get)),
 
-                            Forms\Components\TextInput::make('subtotal')
-                                ->required()
-                                ->numeric()
-                                ->readOnly()
-                                ->label('Subtotal de la compra')
-                                ->reactive(),
+                            ])
+                                ->columnSpan(1)
+                                ->description('Costos manuales'),
 
-                            Forms\Components\TextInput::make('total')
-                                ->required()
-                                ->numeric()
-                                ->label('Total de la compra')
-                                ->readOnly()
-                                ->reactive()
-                                ->dehydrateStateUsing(function ($state, callable $get) {
-                                    $ivatotal = $get('iva') ?? 0;
-                                    $subtotal = $get('subtotal') ?? 0; // Asegúrate de usar 0 si es null
-                                    $costoEnvio = $get('costo_envio') ?? 0; // Asegúrate de usar 0 si es null
-                                    $costoAduana = $get('costo_aduana') ?? 0; // Asegúrate de usar 0 si es null
-                        
-                                    return floatval($ivatotal) + floatval($subtotal) + floatval($costoEnvio) + floatval($costoAduana);
-                                }),
+                            // Cálculos automáticos
+                            Forms\Components\Card::make([
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->label('Subtotal de la compra')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->reactive()
+                                    ->dehydrated(),
 
+                                Forms\Components\TextInput::make('iva')
+                                    ->label('IVA Total')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->reactive()
+                                    ->dehydrated(),
+
+                                Forms\Components\TextInput::make('total')
+                                    ->label('Total de la compra')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->reactive()
+                                    ->dehydrateStateUsing(function ($state, callable $get) {
+                                        $ivatotal = $get('iva') ?? 0;
+                                        $subtotal = $get('subtotal') ?? 0;
+                                        $costoEnvio = $get('costo_envio') ?? 0;
+                                        $costoAduana = $get('costo_aduana') ?? 0;
+
+                                        return floatval($ivatotal) + floatval($subtotal) + floatval($costoEnvio) + floatval($costoAduana);
+                                    })
+                                    ->dehydrated(),
+                            ])
+                                ->columnSpan(1)
+                                ->description('Totales calculados'),
                         ]),
-                ]),
+                ])
+                ->columns(1), // para que solo haya una sección con dos columnas dentro
         ];
     }
 
@@ -420,64 +433,115 @@ class ComprasResource extends Resource
                         ->schema([
                             Select::make('detalleproducto_id')
                                 ->label('Productos')
-                                ->options(function () {
-                                    return DetalleProducto::with('producto')->get()->mapWithKeys(function ($detalleProducto) {
-                                        $productoNombre = $detalleProducto->producto->nombre;
-                                        $color = $detalleProducto->color->nombre ?? 'Sin Color';
-                                        $marca = $detalleProducto->marca->nombre ?? 'Sin Marca';
-                                        $material = $detalleProducto->material->nombre ?? 'Sin Material';
+                                ->searchable()
+                                ->getSearchResultsUsing(function (string $search) {
+                                    return \App\Models\DetalleProducto::query()
+                                        ->select('id', 'producto_id', 'color_id', 'marca_id', 'material_id')
+                                        ->with([
+                                            'producto:id,nombre',
+                                            'color:id,nombre',
+                                            'marca:id,nombre',
+                                            'material:id,nombre',
+                                        ])
+                                        ->whereHas(
+                                            'producto',
+                                            fn($query) =>
+                                            $query->where('nombre', 'like', "%{$search}%")
+                                        )
+                                        ->orWhereHas(
+                                            'color',
+                                            fn($query) =>
+                                            $query->where('nombre', 'like', "%{$search}%")
+                                        )
+                                        ->orWhereHas(
+                                            'marca',
+                                            fn($query) =>
+                                            $query->where('nombre', 'like', "%{$search}%")
+                                        )
+                                        ->orWhereHas(
+                                            'material',
+                                            fn($query) =>
+                                            $query->where('nombre', 'like', "%{$search}%")
+                                        )
+                                        ->limit(20)
+                                        ->get()
+                                        ->mapWithKeys(function ($detalleProducto) {
+                                            $productoNombre = $detalleProducto->producto->nombre ?? 'Sin Producto';
+                                            $color = $detalleProducto->color->nombre ?? 'Sin Color';
+                                            $marca = $detalleProducto->marca->nombre ?? 'Sin Marca';
+                                            $material = $detalleProducto->material->nombre ?? 'Sin Material';
 
-                                        return [
-                                            $detalleProducto->id => "{$productoNombre} (Color: {$color}, Marca: {$marca}, Material: {$material})"
-                                        ];
-                                    });
+                                            return [
+                                                $detalleProducto->id => "{$productoNombre} (Color: {$color}, Marca: {$marca}, Material: {$material})"
+                                            ];
+                                        });
+                                })
+                                ->getOptionLabelUsing(function ($value): ?string {
+                                    $detalle = \App\Models\DetalleProducto::with([
+                                        'producto:id,nombre',
+                                        'color:id,nombre',
+                                        'marca:id,nombre',
+                                        'material:id,nombre',
+                                    ])->find($value);
+
+                                    if (!$detalle)
+                                        return null;
+
+                                    $productoNombre = $detalle->producto->nombre ?? 'Sin Producto';
+                                    $color = $detalle->color->nombre ?? 'Sin Color';
+                                    $marca = $detalle->marca->nombre ?? 'Sin Marca';
+                                    $material = $detalle->material->nombre ?? 'Sin Material';
+
+                                    return "{$productoNombre} (Color: {$color}, Marca: {$marca}, Material: {$material})";
                                 })
                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                                ->searchable()
-                                ->distinct()
                                 ->required(),
+
                             Forms\Components\TextInput::make('cantidad')
                                 ->required()
                                 ->numeric()
-                                ->reactive()
-                                ->afterStateUpdated(function (callable $set, $state, $get) {
-                                    $cantidad = floatval($state);
-                                    $precio_unitario = floatval($get('precio_unitario'));
-                                    $set('subtotal', $cantidad * $precio_unitario);
-                                    #   self::updateTotal($set, $get); 
-                                })
+                                ->live()
+                                ->dehydrated()
+
                                 ->default(1),
+
                             Forms\Components\TextInput::make('precio_unitario')
                                 ->required()
                                 ->numeric()
-                                ->label('Precio Unitario')
-                                ->reactive()
-                                ->afterStateUpdated(function (callable $set, $state, $get) {
-                                    $cantidad = floatval($get('cantidad'));
-                                    $precio_unitario = floatval($state);
-                                    $set('subtotal', $cantidad * $precio_unitario);
-                                    # self::updateTotal($set, $get); 
-                                })
-                                ->default(0.00),
-                            Forms\Components\TextInput::make('subtotal')
-                                ->required()
-                                ->numeric()
-                                ->label('Subtotal')
-                                ->default(0.00)
-                                ->readOnly()
                                 ->reactive(),
+
                             Forms\Components\TextInput::make('iva_unitario')
                                 ->required()
                                 ->numeric()
-                                ->label('Iva Unitario')
-                                ->default(0.00)
+                                ->label('IVA %')
+                                ->default(0.00),
+
+
+                            Forms\Components\Placeholder::make('subtotal')
+                                ->label('Subtotal ')
+                                ->content(function (Get $get): string {
+                                    return number_format($get('precio_unitario') * $get('cantidad'), 2);
+                                }),
+                            Forms\Components\Placeholder::make('Total')
+                                ->label('Total')
+                                ->content(function (Get $get): string {
+                                    $cantidad = floatval($get('cantidad') ?? 0);
+                                    $precio = floatval($get('precio_unitario') ?? 0);
+                                    $ivaPorcentaje = floatval($get('iva_unitario') ?? 0);
+
+                                    $subtotal = $cantidad * $precio;
+                                    $iva = $subtotal * ($ivaPorcentaje / 100);
+                                    $total = $subtotal + $iva;
+
+                                    return number_format($total, 2);
+                                }),
+
+
                         ]),
                 ])
                 ->reactive()
-                ->live(onBlur: true)
-                ->afterStateUpdated(function (callable $set, $state, $get) {
-                    self::updateTotal($set, $get);
-                })
+
+
                 ->minItems(1)
                 ->maxItems(50)
                 ->columnSpanFull();

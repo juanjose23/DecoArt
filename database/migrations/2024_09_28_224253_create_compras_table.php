@@ -15,18 +15,13 @@ return new class extends Migration {
             $table->string('codigo')->unique();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('proveedor_id');
-            $table->dateTime('fecha_recepcion')->notNull();
-            $table->text('notas');
-            $table->decimal('costo_envio', 10, 2)
-                ->default(0.00);
-            $table->decimal('costo_aduana', 10, 2)
-                ->default(0.00);
-            $table->decimal('iva', 10, 2)
-                ->default(0.00);
-            $table->decimal('subtotal', 10, 2)
-                ->default(0.00);
-            $table->decimal('total', 10, 2)
-                ->default(0.00);
+            $table->dateTime('fecha_recepcion')->notNull()->index();
+            $table->text('notas')->nullable();
+            $table->decimal('costo_envio', 15, 4)->default(0.0000);
+            $table->decimal('costo_aduana', 15, 4)->default(0.0000);
+            $table->decimal('iva', 15, 4)->default(0.0000);
+            $table->decimal('subtotal', 15, 4)->default(0.0000);
+            $table->decimal('total', 15, 4)->default(0.0000);
             $table->integer('estado')->notNull();
             $table->timestamps();
 
@@ -40,7 +35,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('detalleproducto_id');
             $table->integer('cantidad')->default(1)->notNull();
             $table->decimal('precio_unitario', 10, 2)->notNull();
-            $table->decimal('subtotal', 10, 2)->notNull();
             $table->decimal('iva_unitario', 10, 2);
             $table->timestamps();
             $table->foreign('compras_id')->references('id')->on('compras')->onDelete('cascade');
